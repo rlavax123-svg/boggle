@@ -18,38 +18,39 @@
     <p class="tagline">A Boggle companion for Isabelle and Rory.</p>
   </header>
 
-  <section class="grid-section">
-    <div id="grid" class="grid" data-size="4"></div>
+  <div class="stage">
+    <section class="grid-section">
+      <div id="grid" class="grid" data-size="4"></div>
 
-    <div class="actions">
-      <button id="solve" class="primary">Solve</button>
-      <button id="random">Random</button>
-      <button id="clear">Clear</button>
-    </div>
+      <div class="actions">
+        <button id="solve" class="primary">Solve</button>
+        <button id="random">Random</button>
+        <button id="clear">Clear</button>
+      </div>
 
-    <div class="settings">
-      <label>
-        <span>Size</span>
-        <select id="size">
-          <option value="4" selected>4 × 4</option>
-          <option value="5">5 × 5</option>
-          <option value="6">6 × 6</option>
-        </select>
-      </label>
-      <label>
-        <span>Min length</span>
-        <select id="minLen">
-          <option value="3" selected>3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-        </select>
-      </label>
-    </div>
-  </section>
+      <div class="settings">
+        <label>
+          <span>Size</span>
+          <select id="size">
+            <option value="4" selected>4 × 4</option>
+            <option value="5">5 × 5</option>
+            <option value="6">6 × 6</option>
+          </select>
+        </label>
+        <label>
+          <span>Min length</span>
+          <select id="minLen">
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </label>
+      </div>
+    </section>
 
-  <div id="status" class="status" aria-live="polite"></div>
+    <div id="status" class="status" aria-live="polite"></div>
 
-  <section id="results" class="results" hidden>
+    <section id="results" class="results" hidden>
     <div class="results-header">
       <h2>Results</h2>
       <div class="summary" id="summary"></div>
@@ -58,8 +59,8 @@
       <input id="filter" type="search" placeholder="Filter words…" autocomplete="off" />
     </div>
     <ol id="wordList" class="word-list"></ol>
-  </section>
-
+    </section>
+  </div>
 </main>
 
 <script src="solver.js"></script>
