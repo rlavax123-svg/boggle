@@ -54,8 +54,43 @@
       gridEl.appendChild(wrap);
       cells.push(input);
     }
+    // Path-chain SVG overlay — appended last so it paints on top of tiles.
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'path-overlay');
+    svg.setAttribute('preserveAspectRatio', 'none');
+    gridEl.appendChild(svg);
+
     wireCellEvents();
     cells[0]?.focus();
+  }
+
+  // Draw (or clear) the mustard chain connecting the tiles of `path` in
+  // order. Uses pixel coordinates read from live bounding rects so it
+  // tracks the tiles precisely regardless of gap, responsive tile size,
+  // or grid dimension.
+  function updatePath(path) {
+    const svg = gridEl.querySelector('.path-overlay');
+    if (!svg) return;
+    svg.innerHTML = '';
+    if (!path || path.length < 2) return;
+    if (path.some(([r, c]) => r >= size || c >= size)) return;
+
+    const gridRect = gridEl.getBoundingClientRect();
+    if (!gridRect.width || !gridRect.height) return;
+    svg.setAttribute('viewBox', `0 0 ${gridRect.width} ${gridRect.height}`);
+
+    const pts = path.map(([r, c]) => {
+      const cell = gridEl.children[r * size + c];
+      const cr = cell.getBoundingClientRect();
+      const x = cr.left + cr.width / 2 - gridRect.left;
+      const y = cr.top + cr.height / 2 - gridRect.top;
+      return x.toFixed(2) + ',' + y.toFixed(2);
+    });
+    const d = 'M' + pts.join(' L');
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    line.setAttribute('d', d);
+    line.setAttribute('class', 'path-line');
+    svg.appendChild(line);
   }
 
   function wireCellEvents() {
@@ -337,7 +372,11 @@
     }
     for (const l of wordListEl.querySelectorAll('li.active')) l.classList.remove('active');
 
-    if (activeWord === word) { activeWord = null; return; }
+    if (activeWord === word) {
+      activeWord = null;
+      updatePath(null);
+      return;
+    }
     activeWord = word;
     li.classList.add('active');
 
@@ -349,6 +388,8 @@
       cell.classList.add('hl');
       const o = cell.querySelector('.order'); if (o) o.textContent = String(step + 1);
     });
+    updatePath(path);
+    li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   // --- Inline definition loading ----------------------------------------
@@ -526,12 +567,26 @@
     cells.forEach((c) => (c.value = ''));
     cells[0]?.focus();
     lastResults = null;
+    activeWord = null;
     resultsEl.hidden = true;
     resetDefQueue();
+    updatePath(null);
     setStatus('');
   });
   randomBtn.addEventListener('click', randomize);
   filterEl.addEventListener('input', renderResults);
+
+  // Re-render the active path when the grid resizes (responsive tile
+  // size shifts as the viewport / column width changes).
+  let pathRaf = 0;
+  window.addEventListener('resize', () => {
+    if (pathRaf) cancelAnimationFrame(pathRaf);
+    pathRaf = requestAnimationFrame(() => {
+      if (!activeWord || !lastResults) return;
+      const p = lastResults.get(activeWord);
+      if (p) updatePath(p);
+    });
+  });
 
   renderGrid(4);
   setStatus('Type the dice, tap Solve.');

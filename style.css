@@ -48,11 +48,16 @@
 html, body { margin: 0; padding: 0; }
 
 html {
-  background: var(--paper-0);
-  /* Very faint paper texture using repeating noise-free gradient. */
+  background-color: var(--paper-0);
+  /* Subtle fibrous paper texture (SVG turbulence) layered over two warm
+   * radial washes. The noise is kept very low opacity so it reads as
+   * tactile grain rather than a pattern. */
   background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.25 0 0 0 0 0.2 0 0 0 0 0.15 0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
     radial-gradient(1200px 600px at 90% -200px, oklch(0.94 0.03 55 / 0.4), transparent 60%),
     radial-gradient(900px 700px at -10% 110%, oklch(0.9 0.04 80 / 0.5), transparent 55%);
+  background-size: 240px 240px, auto, auto;
+  background-repeat: repeat, no-repeat, no-repeat;
 }
 
 body {
@@ -173,6 +178,33 @@ header { margin-bottom: clamp(24px, 5vw, 44px); }
   width: 100%;
   max-width: 460px;
   margin: 0 0 20px;
+  position: relative;
+}
+
+/* Mustard chain-line drawn over the tiles in path order. Sits above the
+ * tile faces but below any focus rings on tile inputs (via z-index). */
+.path-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 2;
+}
+.path-line {
+  fill: none;
+  stroke: var(--mustard);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-opacity: 0.85;
+  filter: drop-shadow(0 1px 1.5px oklch(0.28 0.1 60 / 0.35));
+  animation: path-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes path-in {
+  from { stroke-opacity: 0; stroke-dashoffset: 400; stroke-dasharray: 400; }
+  to   { stroke-opacity: 0.85; stroke-dashoffset: 0; stroke-dasharray: 400; }
 }
 
 .grid[data-size="4"] { grid-template-columns: repeat(4, 1fr); }
@@ -306,19 +338,40 @@ button.primary {
 button.primary:hover { background: var(--crimson-deep); }
 button.primary:focus-visible { outline: 3px solid oklch(0.5 0.16 25 / 0.3); outline-offset: 2px; }
 
+/* Settings — styled as marginalia: a small stamped label followed by a
+ * quiet row of selects, bounded by a mustard vertical rule that mimics
+ * a reader's hand-drawn annotation in a book margin. */
 .settings {
-  margin-top: 6px;
-  display: flex;
-  gap: 22px;
-  flex-wrap: wrap;
+  margin-top: 12px;
   max-width: 460px;
+  padding-left: 14px;
+  border-left: 2px solid var(--mustard);
   color: var(--ink-500);
   font-size: var(--fs-14);
   font-style: italic;
   font-variation-settings: 'opsz' 14, 'SOFT' 80;
 }
 
-.settings label {
+.settings-label {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 10.5px;
+  font-style: normal;
+  font-weight: 800;
+  font-variation-settings: 'opsz' 14, 'SOFT' 0;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--mustard-ink);
+  margin-bottom: 4px;
+}
+
+.settings-row {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+.settings-row label {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -440,14 +493,57 @@ button.primary:focus-visible { outline: 3px solid oklch(0.5 0.16 25 / 0.3); outl
   padding: 0;
   margin: 0;
   max-width: 62ch;
+  /* Flex column so the active entry can lift to the top via `order`. */
+  display: flex;
+  flex-direction: column;
 }
 
 .entry {
-  padding: 10px 0 12px;
-  border-bottom: 1px solid var(--paper-2);
+  position: relative;
+  padding: 16px 0 12px;
   color: var(--ink-900);
 }
-.entry:last-child { border-bottom: 0; }
+
+/* Ornamental rule above each entry (except the first in DOM) — a thin
+ * paper-toned line with a small mustard-outlined diamond at its centre,
+ * like a printed fleuron between book entries. */
+.entry::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--paper-2);
+}
+.entry::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  background: var(--paper-0);
+  border: 1px solid var(--mustard);
+  transform: translateX(-50%) rotate(45deg);
+}
+.entry:first-child::before,
+.entry:first-child::after { display: none; }
+
+/* Active word — lifts to the top of the index and is dressed as a
+ * lexicographer's highlighted entry: mustard-tinted card with an
+ * oxblood rule on the left. */
+.entry.active {
+  order: -1;
+  margin: 4px 0 20px;
+  padding: 14px 16px 14px 14px;
+  background: oklch(0.78 0.13 82 / 0.1);
+  border: 1px solid oklch(0.78 0.13 82 / 0.35);
+  border-left: 3px solid var(--crimson);
+  border-radius: 3px;
+}
+.entry.active::before,
+.entry.active::after { display: none; }
 
 .entry .word-row {
   display: flex;
