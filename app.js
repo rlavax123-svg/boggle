@@ -8,7 +8,6 @@
   const gridEl = document.getElementById('grid');
   const sizeEl = document.getElementById('size');
   const minLenEl = document.getElementById('minLen');
-  const quAsOneEl = document.getElementById('quAsOne');
   const solveBtn = document.getElementById('solve');
   const clearBtn = document.getElementById('clear');
   const randomBtn = document.getElementById('random');
@@ -66,7 +65,7 @@
         const v = input.value.replace(/[^a-zA-Z]/g, '').toUpperCase();
         if (!v) { input.value = ''; return; }
         if (isDelete) { input.value = v; return; }
-        if (quAsOneEl.checked && v === 'Q') {
+        if (v === 'Q') {
           input.value = 'QU';
         } else {
           input.value = v[v.length - 1];
@@ -115,7 +114,7 @@
     while (i < up.length && tokens.length < cells.length - startAt) {
       const ch = up[i];
       if (ch < 'A' || ch > 'Z') { i++; continue; }
-      if (quAsOneEl.checked && ch === 'Q' && up[i + 1] === 'U') {
+      if (ch === 'Q' && up[i + 1] === 'U') {
         tokens.push('QU'); i += 2;
       } else {
         tokens.push(ch); i += 1;
@@ -516,7 +515,7 @@
   function randomize() {
     for (const input of cells) {
       const ch = FREQ[Math.floor(Math.random() * FREQ.length)].toUpperCase();
-      input.value = (quAsOneEl.checked && ch === 'Q') ? 'QU' : ch;
+      input.value = (ch === 'Q') ? 'QU' : ch;
     }
   }
 
@@ -533,13 +532,6 @@
   });
   randomBtn.addEventListener('click', randomize);
   filterEl.addEventListener('input', renderResults);
-  quAsOneEl.addEventListener('change', () => {
-    if (quAsOneEl.checked) {
-      cells.forEach((c) => { if (c.value.toUpperCase() === 'Q') c.value = 'QU'; });
-    } else {
-      cells.forEach((c) => { if (c.value.toUpperCase() === 'QU') c.value = 'Q'; });
-    }
-  });
 
   renderGrid(4);
   setStatus('Type the dice, tap Solve.');
